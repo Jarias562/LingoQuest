@@ -654,6 +654,49 @@ class _GreetingsLessonState extends State<GreetingsLesson> {
           ),
           const SizedBox(height: 10),
           LinearProgressIndicator(value: (question + 1) / greetingQuestions.length),
+          Card(
+            color: const Color(0xFF17365D),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('📘 PRIMERO, APRENDE', style: TextStyle(color: Color(0xFFFFD78A), fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  const Text('En esta misión aprenderás a saludar, preguntar cómo está alguien y despedirte en inglés.', style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 12),
+                  const _GreetingPhrase(english: 'Hello!', spanish: '¡Hola!'),
+                  const _GreetingPhrase(english: 'Good morning!', spanish: '¡Buenos días!'),
+                  const _GreetingPhrase(english: 'How are you?', spanish: '¿Cómo estás?'),
+                  const _GreetingPhrase(english: 'Goodbye!', spanish: '¡Adiós!'),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.tonalIcon(
+                      onPressed: () => speakEnglish('Hello! Good morning! How are you?'),
+                      icon: const Icon(Icons.volume_up),
+                      label: const Text('Escuchar los saludos'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  const Icon(Icons.lightbulb_outline, color: Color(0xFFFFD78A), size: 28),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text('INSTRUCCIONES: lee la pregunta en inglés, escucha el audio si lo necesitas y selecciona la respuesta correcta.', style: TextStyle(fontSize: 15)),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 24),
           const Text('🦉 Questy says:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
@@ -664,7 +707,17 @@ class _GreetingsLessonState extends State<GreetingsLesson> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Text(item.question, textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                  Text(
+                    item.question,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _spanishHint(item.question),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 15),
+                  ),
                   const SizedBox(height: 10),
                   FilledButton.tonalIcon(
                     onPressed: () => speakEnglish(item.question),
@@ -710,6 +763,48 @@ class _GreetingsLessonState extends State<GreetingsLesson> {
               onPressed: answered ? next : null,
               child: Text(question == greetingQuestions.length - 1 ? 'FINISH MISSION 🏆' : 'NEXT QUESTION ➜'),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _spanishHint(String question) {
+  switch (question) {
+    case 'What do you say when you meet someone?':
+      return '¿Qué dices cuando conoces a alguien?';
+    case 'What is the best answer to “How are you?”':
+      return '¿Cuál es la mejor respuesta a “¿Cómo estás?”';
+    case 'Which expression means “Adiós”?':
+      return '¿Qué expresión significa “Adiós”?';
+    case 'Complete: “Nice to ___ you.”':
+      return 'Completa: “Mucho gusto en ___ contigo”.';
+    default:
+      return 'Lee la pregunta y elige la mejor respuesta.';
+  }
+}
+
+class _GreetingPhrase extends StatelessWidget {
+  final String english;
+  final String spanish;
+
+  const _GreetingPhrase({required this.english, required this.spanish});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          const Icon(Icons.chat_bubble_outline, color: Color(0xFFFFD78A), size: 20),
+          const SizedBox(width: 8),
+          Expanded(child: Text(english, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
+          Expanded(child: Text(spanish, textAlign: TextAlign.end, style: const TextStyle(color: Colors.white70, fontSize: 14))),
+          IconButton(
+            tooltip: 'Escuchar $english',
+            onPressed: () => speakEnglish(english),
+            icon: const Icon(Icons.volume_up, size: 20),
           ),
         ],
       ),
