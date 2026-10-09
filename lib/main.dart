@@ -65,17 +65,17 @@ Future<void> speakEnglish(String text) async {
     // Prefer a clearly male English voice, especially US English.
     html.SpeechSynthesisVoice? preferredVoice;
     if (maleVoices.isNotEmpty) {
-      preferredVoice = maleVoices.where((voice) {
+      final usMaleVoices = maleVoices.where((voice) {
         return voice.lang.toLowerCase().replaceAll('_', '-') == 'en-us';
-      }).firstOrNull;
-      preferredVoice ??= maleVoices.first;
+      }).toList();
+      preferredVoice = usMaleVoices.isNotEmpty ? usMaleVoices.first : maleVoices.first;
     } else if (englishVoices.isNotEmpty) {
       // At least force the correct language if this device has no identifiable
       // male English voice installed. The actual voice depends on the device.
-      preferredVoice = englishVoices.where((voice) {
+      final usEnglishVoices = englishVoices.where((voice) {
         return voice.lang.toLowerCase().replaceAll('_', '-') == 'en-us';
-      }).firstOrNull;
-      preferredVoice ??= englishVoices.first;
+      }).toList();
+      preferredVoice = usEnglishVoices.isNotEmpty ? usEnglishVoices.first : englishVoices.first;
     }
 
     final utterance = html.SpeechSynthesisUtterance(text)
