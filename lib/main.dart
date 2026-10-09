@@ -1,6 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 void main() => runApp(const LingoQuestApp());
+
+
+Future<void> speakEnglish(String text) async {
+  final tts = FlutterTts();
+  await tts.setLanguage('en-US');
+  await tts.setSpeechRate(0.42);
+  await tts.setPitch(1.0);
+  await tts.speak(text);
+}
+
+class NordicLandscapePainter extends CustomPainter {
+  const NordicLandscapePainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    canvas.drawRect(rect, Paint()..shader = const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFF102A50), Color(0xFF276E91), Color(0xFF102A35)],
+    ).createShader(rect));
+    canvas.drawCircle(Offset(size.width * .78, size.height * .18), size.width * .075,
+      Paint()..color = const Color(0xFFFFD78A).withOpacity(.82));
+    final far = Path()
+      ..moveTo(0, size.height * .48)..lineTo(size.width * .16, size.height * .20)
+      ..lineTo(size.width * .27, size.height * .43)..lineTo(size.width * .42, size.height * .14)
+      ..lineTo(size.width * .58, size.height * .43)..lineTo(size.width * .72, size.height * .22)
+      ..lineTo(size.width * .90, size.height * .44)..lineTo(size.width, size.height * .29)
+      ..lineTo(size.width, size.height)..lineTo(0, size.height)..close();
+    canvas.drawPath(far, Paint()..color = const Color(0xFF6B9DB5).withOpacity(.8));
+    final snow = Paint()..color = const Color(0xFFE3F4F5).withOpacity(.8);
+    for (final p in [[size.width*.16,size.height*.20,size.width*.105],[size.width*.42,size.height*.14,size.width*.12],[size.width*.72,size.height*.22,size.width*.10]]) {
+      final x=p[0], y=p[1], w=p[2];
+      final cap=Path()..moveTo(x-w*.35,y+w*.55)..lineTo(x,y-w*.18)..lineTo(x+w*.34,y+w*.52)..lineTo(x+w*.08,y+w*.38)..lineTo(x,y+w*.50)..lineTo(x-w*.12,y+w*.37)..close();
+      canvas.drawPath(cap,snow);
+    }
+    final near=Path()..moveTo(0,size.height*.68)..quadraticBezierTo(size.width*.18,size.height*.42,size.width*.36,size.height*.68)
+      ..quadraticBezierTo(size.width*.63,size.height*.88,size.width,size.height*.58)..lineTo(size.width,size.height)..lineTo(0,size.height)..close();
+    canvas.drawPath(near,Paint()..color=const Color(0xFF102F39).withOpacity(.94));
+    final water=Path()..moveTo(size.width*.52,size.height*.48)..lineTo(size.width*.57,size.height*.48)
+      ..lineTo(size.width*.66,size.height*.91)..lineTo(size.width*.45,size.height*.91)..close();
+    canvas.drawPath(water,Paint()..color=const Color(0xFF52C7E8).withOpacity(.48));
+    final castle=Paint()..color=const Color(0xFFFFD18A).withOpacity(.8);
+    final cx=size.width*.78, cy=size.height*.43;
+    canvas.drawRect(Rect.fromLTWH(cx-22,cy-30,44,34),castle);
+    canvas.drawRect(Rect.fromLTWH(cx-35,cy-45,13,49),castle);
+    canvas.drawRect(Rect.fromLTWH(cx+22,cy-43,13,47),castle);
+    for(final x in [cx-28,cx+28]) {
+      final roof=Path()..moveTo(x-11,cy-44)..lineTo(x,cy-59)..lineTo(x+11,cy-44)..close();
+      canvas.drawPath(roof,castle);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 
 class LingoQuestApp extends StatefulWidget {
   const LingoQuestApp({super.key});
@@ -33,9 +87,9 @@ class _LingoQuestAppState extends State<LingoQuestApp> {
       title: 'LingoQuest',
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF10121A),
+        scaffoldBackgroundColor: const Color(0xFF0B1628),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: const Color(0xFF16A9E8),
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
@@ -159,7 +213,10 @@ class HomePage extends StatelessWidget {
         title: const Text('LingoQuest 🦉', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: ListView(
+      body: Stack(
+        children: [
+          const Positioned.fill(child: CustomPaint(painter: NordicLandscapePainter())),
+          ListView(
         padding: const EdgeInsets.all(20),
         children: [
           const Text('🦉', textAlign: TextAlign.center, style: TextStyle(fontSize: 88)),
@@ -216,6 +273,8 @@ class HomePage extends StatelessWidget {
           const Text('Learn English • Have Fun • Earn Rewards', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54)),
           const SizedBox(height: 6),
           const Text('By Mr. Arias', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
         ],
       ),
     );
@@ -505,7 +564,17 @@ class _GreetingsLessonState extends State<GreetingsLesson> {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: Text(item.question, textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+              child: Column(
+                children: [
+                  Text(item.question, textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  FilledButton.tonalIcon(
+                    onPressed: () => speakEnglish(item.question),
+                    icon: const Icon(Icons.volume_up),
+                    label: const Text('Listen in English'),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 14),
