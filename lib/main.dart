@@ -56,6 +56,38 @@ class NordicLandscapePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+class QuestyAvatar extends StatelessWidget {
+  final double size;
+  const QuestyAvatar({super.key, this.size = 88});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(size * .045),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFD77A), Color(0xFF9B6829), Color(0xFF1C9BCB)],
+        ),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF28BDEB).withOpacity(.28), blurRadius: 18, spreadRadius: 2),
+        ],
+      ),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(colors: [Color(0xFF17365D), Color(0xFF08182D)]),
+        ),
+        child: Center(child: Text('🦉', style: TextStyle(fontSize: size * .58))),
+      ),
+    );
+  }
+}
+
 class LingoQuestApp extends StatefulWidget {
   const LingoQuestApp({super.key});
 
@@ -219,7 +251,7 @@ class HomePage extends StatelessWidget {
           ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('🦉', textAlign: TextAlign.center, style: TextStyle(fontSize: 88)),
+          const Center(child: QuestyAvatar(size: 108)),
           const SizedBox(height: 8),
           const Text(
             'Welcome to LingoQuest!',
@@ -698,7 +730,7 @@ class RewardsPage extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  const Text('🦉', style: TextStyle(fontSize: 70)),
+                  const QuestyAvatar(size: 86),
                   const Text('Questy Rewards', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   Row(
