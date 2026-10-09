@@ -1,14 +1,64 @@
 import 'package:flutter/material.dart';
+import 'dart:html' as html;
+import 'dart:js_util' as js_util;
 import 'package:flutter_tts/flutter_tts.dart';
 
 void main() => runApp(const LingoQuestApp());
 
+
+dynamic _deferredInstallPrompt;
+
+void configureInstallPrompt() {
+  html.window.addEventListener('beforeinstallprompt', (event) {
+    event.preventDefault();
+    _deferredInstallPrompt = event;
+  });
+}
+
+Future<void> installLingoQuest(BuildContext context) async {
+  final prompt = _deferredInstallPrompt;
+  if (prompt != null) {
+    await js_util.promiseToFuture(js_util.callMethod(prompt, 'prompt', <Object>[]));
+    _deferredInstallPrompt = null;
+    return;
+  }
+  if (!context.mounted) return;
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Install LingoQuest'),
+      content: const Text('On your Android phone, open this website in Chrome, tap the three dots (⋮), then choose Install app or Add to Home screen.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('GOT IT')),
+      ],
+    ),
+  );
+}
 
 Future<void> speakEnglish(String text) async {
   final tts = FlutterTts();
   await tts.setLanguage('en-US');
   await tts.setSpeechRate(0.42);
   await tts.setPitch(1.0);
+  try {
+    final dynamic voices = await tts.getVoices;
+    if (voices is List) {
+      final englishVoices = voices.where((voice) {
+        if (voice is! Map) return false;
+        final locale = (voice['locale'] ?? voice['lang'] ?? '').toString().toLowerCase();
+        return locale == 'en-us' || locale.startsWith('en-');
+      }).toList();
+      if (englishVoices.isNotEmpty) {
+        final preferred = englishVoices.firstWhere(
+          (voice) => (voice['locale'] ?? '').toString().toLowerCase() == 'en-us',
+          orElse: () => englishVoices.first,
+        );
+        await tts.setVoice({'name': preferred['name'], 'locale': preferred['locale'] ?? 'en-US'});
+      }
+    }
+  } catch (_) {
+    // Keep en-US if voice enumeration is unavailable.
+  }
   await tts.speak(text);
 }
 
@@ -96,6 +146,12 @@ class LingoQuestApp extends StatefulWidget {
 }
 
 class _LingoQuestAppState extends State<LingoQuestApp> {
+  @override
+  void initState() {
+    super.initState();
+    configureInstallPrompt();
+  }
+
   int xp = 0;
   int coins = 50;
   int streak = 1;
@@ -299,6 +355,16 @@ class HomePage extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton.icon(
+              onPressed: () => installLingoQuest(context),
+              icon: const Icon(Icons.install_mobile),
+              label: const Text('INSTALL ON ANDROID PHONE'),
             ),
           ),
           const SizedBox(height: 18),
