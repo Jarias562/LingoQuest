@@ -36,70 +36,68 @@ Future<void> installLingoQuest(BuildContext context) async {
 }
 
 Future<void> speakEnglish(String text) async {
-  final tts = FlutterTts();
-
-  // Force English speech so English words are not read with a Spanish voice.
-  await tts.setLanguage('en-US');
-  await tts.setSpeechRate(0.42);
-  // A slightly lower pitch helps when the browser has no explicit male voice.
-  await tts.setPitch(0.88);
-
+  // flutter_tts cannot reliably select a specific voice in the web build.
+  // Use the browser's Web Speech API directly so the English voice is selected.
   try {
-    final dynamic voices = await tts.getVoices;
-    if (voices is List) {
-      final englishVoices = voices.where((voice) {
-        if (voice is! Map) return false;
-        final locale = (voice['locale'] ?? voice['lang'] ?? '')
-            .toString()
-            .toLowerCase();
-        return locale == 'en' || locale.startsWith('en-');
-      }).whereType<Map>().toList();
+    final synthesis = html.window.speechSynthesis;
 
-      if (englishVoices.isNotEmpty) {
-        // Prefer a voice explicitly marked male, or a commonly named male voice.
-        final maleNamePattern = RegExp(
-          r'\b(david|guy|mark|christopher|roger|eric|brian|daniel|james|aaron|tom|alex|male)\b',
-          caseSensitive: false,
-        );
-        final maleVoices = englishVoices.where((voice) {
-          final gender = (voice['gender'] ?? '').toString().toLowerCase();
-          final name = (voice['name'] ?? '').toString();
-          return gender == 'male' ||
-              gender == 'masculine' ||
-              maleNamePattern.hasMatch(name);
-        }).toList();
-
-        Map preferred;
-        if (maleVoices.isNotEmpty) {
-          preferred = maleVoices.firstWhere(
-            (voice) => (voice['locale'] ?? '').toString().toLowerCase() == 'en-us',
-            orElse: () => maleVoices.first,
-          );
-        } else {
-          // If no male English voice is installed, prefer a US English voice.
-          preferred = englishVoices.firstWhere(
-            (voice) => (voice['locale'] ?? '').toString().toLowerCase() == 'en-us',
-            orElse: () => englishVoices.first,
-          );
-        }
-
-        final voiceName = preferred['name'];
-        final voiceLocale = preferred['locale'] ?? 'en-US';
-        if (voiceName != null) {
-          await tts.setVoice({
-            'name': voiceName,
-            'locale': voiceLocale,
-          });
-        }
-      }
+    var voices = synthesis.getVoices();
+    // Some browsers populate their voice list shortly after page load.
+    if (voices.isEmpty) {
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+      voices = synthesis.getVoices();
     }
+
+    final englishVoices = voices.where((voice) {
+      final locale = voice.lang.toLowerCase().replaceAll('_', '-');
+      return locale == 'en' || locale.startsWith('en-');
+    }).toList();
+
+    final maleNamePattern = RegExp(
+      r'\\b(david|guy|mark|christopher|roger|eric|brian|daniel|james|aaron|tom|alex|male|andrew|ryan|liam)\\b',
+      caseSensitive: false,
+    );
+
+    final maleVoices = englishVoices.where((voice) {
+      return maleNamePattern.hasMatch(voice.name);
+    }).toList();
+
+    // Prefer a clearly male English voice, especially US English.
+    html.SpeechSynthesisVoice? preferredVoice;
+    if (maleVoices.isNotEmpty) {
+      preferredVoice = maleVoices.where((voice) {
+        return voice.lang.toLowerCase().replaceAll('_', '-') == 'en-us';
+      }).firstOrNull;
+      preferredVoice ??= maleVoices.first;
+    } else if (englishVoices.isNotEmpty) {
+      // At least force the correct language if this device has no identifiable
+      // male English voice installed. The actual voice depends on the device.
+      preferredVoice = englishVoices.where((voice) {
+        return voice.lang.toLowerCase().replaceAll('_', '-') == 'en-us';
+      }).firstOrNull;
+      preferredVoice ??= englishVoices.first;
+    }
+
+    final utterance = html.SpeechSynthesisUtterance(text)
+      ..lang = 'en-US'
+      ..rate = 0.88
+      ..pitch = 0.88;
+
+    if (preferredVoice != null) {
+      utterance.voice = preferredVoice;
+      utterance.lang = preferredVoice.lang;
+    }
+
+    synthesis.cancel();
+    synthesis.speak(utterance);
   } catch (_) {
-    // Some browsers do not expose their available voices. Keep en-US selected.
+    // Last-resort fallback: request US English through the Flutter plugin.
+    final tts = FlutterTts();
+    await tts.setLanguage('en-US');
+    await tts.setSpeechRate(0.42);
+    await tts.speak(text);
   }
-
-  await tts.speak(text);
 }
-
 class NordicLandscapePainter extends CustomPainter {
   const NordicLandscapePainter();
   @override
