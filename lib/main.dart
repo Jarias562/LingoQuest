@@ -37,28 +37,66 @@ Future<void> installLingoQuest(BuildContext context) async {
 
 Future<void> speakEnglish(String text) async {
   final tts = FlutterTts();
+
+  // Force English speech so English words are not read with a Spanish voice.
   await tts.setLanguage('en-US');
   await tts.setSpeechRate(0.42);
-  await tts.setPitch(1.0);
+  // A slightly lower pitch helps when the browser has no explicit male voice.
+  await tts.setPitch(0.88);
+
   try {
     final dynamic voices = await tts.getVoices;
     if (voices is List) {
       final englishVoices = voices.where((voice) {
         if (voice is! Map) return false;
-        final locale = (voice['locale'] ?? voice['lang'] ?? '').toString().toLowerCase();
-        return locale == 'en-us' || locale.startsWith('en-');
-      }).toList();
+        final locale = (voice['locale'] ?? voice['lang'] ?? '')
+            .toString()
+            .toLowerCase();
+        return locale == 'en' || locale.startsWith('en-');
+      }).whereType<Map>().toList();
+
       if (englishVoices.isNotEmpty) {
-        final preferred = englishVoices.firstWhere(
-          (voice) => (voice['locale'] ?? '').toString().toLowerCase() == 'en-us',
-          orElse: () => englishVoices.first,
+        // Prefer a voice explicitly marked male, or a commonly named male voice.
+        final maleNamePattern = RegExp(
+          r'\\b(david|guy|mark|christopher|roger|eric|brian|daniel|james|aaron|tom|alex|male)\\b',
+          caseSensitive: false,
         );
-        await tts.setVoice({'name': preferred['name'], 'locale': preferred['locale'] ?? 'en-US'});
+        final maleVoices = englishVoices.where((voice) {
+          final gender = (voice['gender'] ?? '').toString().toLowerCase();
+          final name = (voice['name'] ?? '').toString();
+          return gender == 'male' ||
+              gender == 'masculine' ||
+              maleNamePattern.hasMatch(name);
+        }).toList();
+
+        Map preferred;
+        if (maleVoices.isNotEmpty) {
+          preferred = maleVoices.firstWhere(
+            (voice) => (voice['locale'] ?? '').toString().toLowerCase() == 'en-us',
+            orElse: () => maleVoices.first,
+          );
+        } else {
+          // If no male English voice is installed, prefer a US English voice.
+          preferred = englishVoices.firstWhere(
+            (voice) => (voice['locale'] ?? '').toString().toLowerCase() == 'en-us',
+            orElse: () => englishVoices.first,
+          );
+        }
+
+        final voiceName = preferred['name'];
+        final voiceLocale = preferred['locale'] ?? 'en-US';
+        if (voiceName != null) {
+          await tts.setVoice({
+            'name': voiceName,
+            'locale': voiceLocale,
+          });
+        }
       }
     }
   } catch (_) {
-    // Keep en-US if voice enumeration is unavailable.
+    // Some browsers do not expose their available voices. Keep en-US selected.
   }
+
   await tts.speak(text);
 }
 
