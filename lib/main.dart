@@ -58,7 +58,7 @@ Future<void> speakEnglish(String text) async {
       if (englishVoices.isNotEmpty) {
         // Prefer a voice explicitly marked male, or a commonly named male voice.
         final maleNamePattern = RegExp(
-          r'\\b(david|guy|mark|christopher|roger|eric|brian|daniel|james|aaron|tom|alex|male)\\b',
+          r'\b(david|guy|mark|christopher|roger|eric|brian|daniel|james|aaron|tom|alex|male)\b',
           caseSensitive: false,
         );
         final maleVoices = englishVoices.where((voice) {
