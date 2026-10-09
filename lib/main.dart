@@ -364,7 +364,7 @@ class HomePage extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => installLingoQuest(context),
               icon: const Icon(Icons.install_mobile),
-              label: const Text('INSTALL ON ANDROID PHONE'),
+              label: const Text('INSTALAR EN ANDROID'),
             ),
           ),
           const SizedBox(height: 18),
