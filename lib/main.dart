@@ -54,7 +54,7 @@ Future<void> speakEnglish(String text) async {
     }).toList();
 
     final maleNamePattern = RegExp(
-      r'\\b(david|guy|mark|christopher|roger|eric|brian|daniel|james|aaron|tom|alex|male|andrew|ryan|liam)\\b',
+      r'\b(david|guy|mark|christopher|roger|eric|brian|daniel|james|aaron|tom|alex|male|andrew|ryan|liam)\b',
       caseSensitive: false,
     );
 
