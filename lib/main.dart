@@ -168,7 +168,7 @@ class QuestyAvatar extends StatelessWidget {
           shape: BoxShape.circle,
           gradient: LinearGradient(colors: [Color(0xFF17365D), Color(0xFF08182D)]),
         ),
-        child: Center(child: Text('🦉', style: TextStyle(fontSize: size * .58))),
+        child: Center(child: Text('🦊', style: TextStyle(fontSize: size * .58))),
       ),
     );
   }
@@ -334,7 +334,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('LingoQuest 🦉', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('LingoQuest 🦊', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: Stack(
@@ -734,7 +734,7 @@ class _GreetingsLessonState extends State<GreetingsLesson> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text('🦉 Questy says:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('🦊 Questy says:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           const Text('Let’s practice greetings!', style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
